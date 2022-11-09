@@ -29,9 +29,10 @@ BSdelta_tk=zeros(BS_num,1);
 BSf_k=zeros(BS_num,1);
 MSdelta_tk=0;
 MSf_k=0;
-[real_x,real_y,real_z]=[MS_radius*cos(time*MS_ang_velocity),MS_radius*sin(time*MS_ang_velocity),MS_height_diff*cos(MS_height_ang_velocity*time)]+MS_center;
+
 while time<Simulation_Time
     error=0;
+    pseudodis=zeros(BS_num,1);
     %%%%%%%%%%% calcu the fk and deltk of time step
     noise=mvnrnd([0,0],Qk,BS_num+1);
     MSdelta_tk=MSdelta_tk_1+Ts*MSf_k_1+noise(BS_num+1,1);
@@ -42,18 +43,18 @@ while time<Simulation_Time
     end
 
     %%%%%%%%%%% calcu the real location of MS
+    real_x = MS_radius*cos(time*MS_ang_velocity)+MS_center(1);
+    real_y = MS_radius*sin(time*MS_ang_velocity)+MS_center(2);
+    real_z = MS_height_diff*cos(MS_height_ang_velocity*time)+MS_center(3);
 
-
-
-    for i=1:num
-    r1=S-ones(m,1)*MS;
-    r2=(sum(r1.^2,2)).^(1/2);
-    r=r2(2:end,:)-ones(m-1,1)*r2(1,:)+sigma_var1*randn(m-1,1); %noised distance to MS
-    sigma=sigma_var1^2;
-    theta=TDOA_chan(S,r,sigma);
-    error=error+norm(MS-theta)^2;
+    %%%%%%%%%%% calcu the noised pseodo distance
+    for i=1:BS_num
+        pseudodis(i)=((BS_loc(i,1)-real_x)^2+(BS_loc(i,2)-real_y)^2+(BS_loc(i,3)-real_z)^2)^(1/2)+(BSdelta_tk(i)-MSdelta_tk)*c;
     end
-    RMSE(j)=(error/num)^(1/2);
+    [x,y,z]=EKF_direct(pseudodis,BS_num,BS_loc,Ts,Qk);
+
+%     error=error+norm(MS-theta)^2;
+%     RMSE(j)=(error/num)^(1/2);
 end
 semilogx(sigma_var,RMSE,'-O');
 xlabel('std of measured noise');
