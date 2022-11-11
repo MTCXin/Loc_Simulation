@@ -5,6 +5,8 @@ Simulation_Time=20;     % seconds of simulation (s)
 Ts=0.1;                 % Sampling interval in (s)
 BS_num=8;               % number of base station
 F_clock=5e9;            % nominal frequency of clock (Hz)
+Sigmaxy=1;              % variance of x-y
+Sigmaz=1;               % variance of z
 BS_loc=[0,15,0.5;0,35,1.5;15,0,2.5;35,0,0.5;50,15,1.5;50,35,2.5;15,50,0.5;15,35,1.5];
 MS_center=[25,25,1];      % assuming mobile station do a circular motion
 MS_radius=6;    
@@ -51,7 +53,7 @@ while time<Simulation_Time
     for i=1:BS_num
         pseudodis(i)=((BS_loc(i,1)-real_x)^2+(BS_loc(i,2)-real_y)^2+(BS_loc(i,3)-real_z)^2)^(1/2)+(BSdelta_tk(i)-MSdelta_tk)*c;
     end
-    [x,y,z]=EKF_direct(pseudodis,BS_num,BS_loc,Ts,Qk);
+    [x,y,z]=EKF_direct(pseudodis,BS_num,BS_loc,Ts,Qk,Sigmaxy,Sigmaz);
 
 %     error=error+norm(MS-theta)^2;
 %     RMSE(j)=(error/num)^(1/2);
